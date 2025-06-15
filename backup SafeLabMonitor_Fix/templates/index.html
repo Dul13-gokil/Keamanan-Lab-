@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>SafeLabMonitor - Lab Multimedia</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            padding: 20px;
+        }
+
+        header {
+            background-color: #2a5599;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            justify-content: flex-start;
+        }
+
+        .logo {
+            height: 50px;
+            width: auto;
+            border-radius: 6px;
+        }
+
+        .status-cards {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            width: 30%;
+            text-align: center;
+            font-size: 18px;
+        }
+
+        .card .icon {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .main-content {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .live-feed, .security-log {
+            background-color: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            width: 48%;
+        }
+
+        .camera-frame {
+            position: relative;
+        }
+
+        .camera-frame img {
+            width: 100%;
+            border-radius: 10px;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 8px;
+            left: 12px;
+            color: white;
+            font-weight: bold;
+            background: rgba(0,0,0,0.6);
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        /* Notifikasi Peringatan styling */
+        .security-log h3 {
+            margin-top: 0;
+        }
+
+        #log-realtime-list {
+            list-style-type: none;
+            padding-left: 0;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 0;
+        }
+
+        #log-realtime-list li {
+            margin-bottom: 2px;
+            padding: 10px 15px;
+            background-color: #f1f1f1;
+            border-left: 4px solid #e60000;
+            font-family: monospace;
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        /* Scrollbar styling */
+        #log-realtime-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #log-realtime-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        #log-realtime-list::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+
+        #log-realtime-list::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <img src="/static/img/Logo_Web_Vision.png" alt="Logo" class="logo">
+                <h2>SafeLabMonitor - Lab Multimedia</h2>
+            </div>
+        </header>
+
+        <div class="status-cards">
+            <div class="card">
+                <div class="icon">✅</div>
+                <div>Status Sistem</div>
+            </div>
+            <div class="card">
+                <div class="icon">📷</div>
+                <div>Kamera Aktif</div>
+            </div>
+            <div class="card">
+                <div class="icon">⚠️</div>
+                <div>Notifikasi Peringatan</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="live-feed">
+                <h3>Kamera Live Feed</h3>
+                <div class="camera-frame">
+                    <img src="{{ url_for('video_feed') }}" alt="Live Feed">
+                    <div class="overlay">Lab Multimedia</div>
+                </div>
+            </div>
+            
+            <div class="security-log">  
+                <h3>Notifikasi Peringatan</h3>
+                <ul id="log-realtime-list">
+                    <li>2025-04-13 18:39:23 - Unknown - Gerakan mencurigakan</li>
+                    <li>2025-04-13 18:39:23 - Unknown - Gerakan mencurigakan</li>
+                    <li>2025-04-13 18:39:24 - Unknown - Gerakan mencurigakan</li>
+                    <li>2025-04-13 18:39:24 - Unknown - Gerakan mencurigakan</li>
+                    <li>2025-04-13 18:39:24 - Unknown - Gerakan mencurigakan</li>
+                    <li>2025-04-13 18:39:24 - Unknown - Gerakan mencurigakan</li>
+                    <li>2025-04-13 18:39:25 - Unknown - Gerakan mencurigakan</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            async function fetchLogsRealtime() {
+                try {
+                    const response = await fetch('/get_logs'); // pastikan route ini benar
+                    const data = await response.json();
+
+                    const list = document.getElementById('log-realtime-list');
+                    list.innerHTML = ''; // Kosongkan daftar log yang ada
+
+                    const recentLogs = data.slice(-10).reverse(); // Tampilkan 10 log terakhir
+                    recentLogs.forEach(log => {
+                        const item = document.createElement('li');
+                        item.textContent = `${log.time || log.Waktu} - ${log.event || (log.Nama + ' - ' + log.Alasan)}`;
+                        list.appendChild(item);
+                    });
+
+                } catch (err) {
+                    console.error('Gagal memuat log:', err);
+                }
+            }
+
+            setInterval(fetchLogsRealtime, 3000); // Update setiap 3 detik
+            fetchLogsRealtime(); // Jalankan saat pertama load
+        });
+    </script>
+</body>
+</html>
